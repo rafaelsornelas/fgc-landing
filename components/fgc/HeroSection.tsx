@@ -3,17 +3,46 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 
 export default function HeroSection() {
     const [formData, setFormData] = useState({ name: '', email: '' });
-    const [submitted, setSubmitted] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // URL do Webhook (Use a de TESTE para debugar, depois troque pela de PRODUÇÃO tirando o "-test")
+    const WEBHOOK_URL = 'https://n8n.rafaelornelas.cloud/webhook/contato-fgc';
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
-        // Reset after 3 seconds
-        setTimeout(() => setSubmitted(false), 3000);
+        setStatus('loading');
+
+        try {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    origem: 'Landing Page FGC',
+                    data: new Date().toISOString()
+                }),
+            });
+
+            if (response.ok) {
+                setStatus('success');
+                // Limpa o formulário
+                setFormData({ name: '', email: '' });
+                // Reseta o status após 5 segundos para permitir novo envio
+                setTimeout(() => setStatus('idle'), 5000);
+            } else {
+                throw new Error('Falha no envio');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar:', error);
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 3000);
+        }
     };
 
     return (
@@ -23,8 +52,6 @@ export default function HeroSection() {
                 <div className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
                 <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800/20 via-transparent to-transparent" />
-
-                {/* Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
             </div>
 
@@ -36,7 +63,6 @@ export default function HeroSection() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        {/* Badge */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -47,13 +73,13 @@ export default function HeroSection() {
                             <span>Consultoria Empresarial 360º</span>
                         </motion.div>
 
-                        {/* Logo Original (Imagem) */}
                         <motion.div
                             className="mb-8"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
                         >
+                            {/* IMAGEM DA LOGO AQUI - Certifique-se de que o arquivo existe em public/ */}
                             <img
                                 src="/logo-fgc.png"
                                 alt="FGC Expertise Logo"
@@ -61,7 +87,6 @@ export default function HeroSection() {
                             />
                         </motion.div>
 
-                        {/* Headline */}
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
                             Transforme a gestão do seu{' '}
                             <span className="relative">
@@ -82,7 +107,6 @@ export default function HeroSection() {
                             aumentar produtividade e liberar você para crescer.
                         </p>
 
-                        {/* Stats */}
                         <div className="flex gap-12">
                             {[
                                 { value: '20+', label: 'Anos de experiência' },
@@ -110,7 +134,6 @@ export default function HeroSection() {
                         className="lg:justify-self-end w-full max-w-md"
                     >
                         <div className="relative">
-                            {/* Glow Effect */}
                             <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-amber-600/20 rounded-3xl blur-xl" />
 
                             <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-8">
@@ -123,7 +146,7 @@ export default function HeroSection() {
                                     </p>
                                 </div>
 
-                                {submitted ? (
+                                {status === 'success' ? (
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
@@ -134,8 +157,8 @@ export default function HeroSection() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
                                         </div>
-                                        <p className="text-white font-medium">Obrigado!</p>
-                                        <p className="text-slate-400 text-sm">Entraremos em contato em breve.</p>
+                                        <h4 className="text-xl font-bold text-white mb-2">Solicitação Enviada!</h4>
+                                        <p className="text-slate-400 text-sm">Em breve entraremos em contato.</p>
                                     </motion.div>
                                 ) : (
                                     <form onSubmit={handleSubmit} className="space-y-5">
@@ -148,6 +171,7 @@ export default function HeroSection() {
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
                                                 placeholder="Seu nome"
+                                                disabled={status === 'loading'}
                                             />
                                         </div>
                                         <div>
@@ -159,14 +183,29 @@ export default function HeroSection() {
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
                                                 placeholder="seu@email.com"
+                                                disabled={status === 'loading'}
                                             />
                                         </div>
+
+                                        {status === 'error' && (
+                                            <p className="text-red-400 text-sm text-center">Erro ao enviar. Tente novamente.</p>
+                                        )}
+
                                         <Button
                                             type="submit"
+                                            disabled={status === 'loading'}
                                             className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-900 font-semibold rounded-xl transition-all duration-300 group"
                                         >
-                                            Quero meu diagnóstico
-                                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                            {status === 'loading' ? (
+                                                <span className="flex items-center gap-2">
+                                                    <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
+                                                </span>
+                                            ) : (
+                                                <>
+                                                    Quero meu diagnóstico
+                                                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                                </>
+                                            )}
                                         </Button>
                                     </form>
                                 )}
