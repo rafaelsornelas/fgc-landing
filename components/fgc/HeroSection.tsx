@@ -10,7 +10,7 @@ export default function HeroSection() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
     // URL do Webhook (Use a de TESTE para debugar, depois troque pela de PRODUÇÃO tirando o "-test")
-    const WEBHOOK_URL = 'https://n8n.rafaelornelas.cloud/webhook/contato-fgc';
+    const WEBHOOK_URL = '/api/contact';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
