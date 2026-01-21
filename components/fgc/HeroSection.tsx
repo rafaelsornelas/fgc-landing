@@ -31,6 +31,16 @@ export default function HeroSection() {
 
             if (response.ok) {
                 setStatus('success');
+                // --- CÓDIGO NOVO DO GA4 AQUI ---
+                // Verifica se o GA4 está carregado e dispara o evento
+                if (typeof window !== 'undefined' && (window as any).gtag) {
+                    (window as any).gtag('event', 'generate_lead', {
+                        'event_category': 'Formulário',
+                        'event_label': 'Landing Page Home',
+                        'value': 1 // (Opcional) Atribui valor de "1 conversão"
+                    });
+                }
+
                 // Limpa o formulário
                 setFormData({ name: '', email: '', whatsapp: '' });
                 // Reseta o status após 5 segundos para permitir novo envio
