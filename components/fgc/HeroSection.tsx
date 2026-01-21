@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 
 export default function HeroSection() {
-    const [formData, setFormData] = useState({ name: '', email: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', whatsapp: '' });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
     // URL do Webhook (Use a de TESTE para debugar, depois troque pela de PRODUÇÃO tirando o "-test")
@@ -32,7 +32,7 @@ export default function HeroSection() {
             if (response.ok) {
                 setStatus('success');
                 // Limpa o formulário
-                setFormData({ name: '', email: '' });
+                setFormData({ name: '', email: '', whatsapp: '' });
                 // Reseta o status após 5 segundos para permitir novo envio
                 setTimeout(() => setStatus('idle'), 5000);
             } else {
@@ -183,6 +183,18 @@ export default function HeroSection() {
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
                                                 placeholder="seu@email.com"
+                                                disabled={status === 'loading'}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm text-slate-400 mb-2">WhatsApp / Celular</label>
+                                            <Input
+                                                type="tel" // "tel" abre o teclado numérico no celular
+                                                required
+                                                value={formData.whatsapp}
+                                                onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                                                className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
+                                                placeholder="(31) 99999-9999"
                                                 disabled={status === 'loading'}
                                             />
                                         </div>
