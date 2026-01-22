@@ -192,7 +192,7 @@ export default function HeroSection() {
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
-                                                placeholder="seu@email.com"
+                                                placeholder="comercial@focogestaocorporativa.com"
                                                 disabled={status === 'loading'}
                                             />
                                         </div>
@@ -204,7 +204,7 @@ export default function HeroSection() {
                                                 value={formData.whatsapp}
                                                 onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
                                                 className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
-                                                placeholder="(31) 99999-9999"
+                                                placeholder="(31) 99876-0724"
                                                 disabled={status === 'loading'}
                                             />
                                         </div>

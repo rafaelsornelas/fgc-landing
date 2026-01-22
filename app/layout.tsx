@@ -3,6 +3,7 @@ import Script from 'next/script'
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { TypebotBubble } from '@/components/fgc/TypebotBubble'; // <--- 1. Importe aqui (ajuste o caminho se precisar)
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,10 +29,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-br">
-      {/* AQUI ESTAVA O DETALHE: Adicionei as classes das fontes no body */}
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 
         {children}
+
+        <TypebotBubble /> {/* <--- 2. Adicione o componente AQUI, antes do fecha body */}
 
         {/* Google Analytics - Melhor dentro do body */}
         <GoogleAnalytics gaId="G-JCH294WZL4" />
