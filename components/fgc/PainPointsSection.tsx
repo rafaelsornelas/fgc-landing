@@ -102,7 +102,7 @@ export default function PainPointsSection() {
 
                         <Button
                             className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-xl group"
-                            onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSfSl1C5TDitNVPfuSYbNNO4Mpwqjo81UnUV4WwI0R-y6a5B1w/viewform', '_blank')}
+                            onClick={() => window.open('https://chat.rafaelornelas.cloud/fgcexpertise', '_blank')}
                         >
                             Quero meu planejamento 360º
                             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />

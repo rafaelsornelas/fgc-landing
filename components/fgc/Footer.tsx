@@ -23,7 +23,7 @@ export default function Footer() {
     ];
 
     return (
-        <footer className="bg-slate-950 text-white relative overflow-hidden">
+        <footer className="bg-[#211A60] text-white relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
 
@@ -87,11 +87,11 @@ export default function Footer() {
                             <ul className="space-y-4">
                                 <li className="flex items-center gap-3 text-slate-400">
                                     <Mail className="w-5 h-5 text-amber-500" />
-                                    <span>contato@fgcexpertise.com</span>
+                                    <span>comercial@focogestaocorporativa.com</span>
                                 </li>
                                 <li className="flex items-center gap-3 text-slate-400">
                                     <Phone className="w-5 h-5 text-amber-500" />
-                                    <span>(11) 99999-9999</span>
+                                    <span>(31) 99876-0724</span>
                                 </li>
                             </ul>
                         </div>
