@@ -185,26 +185,26 @@ export default function HeroSection() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm text-slate-400 mb-2">E-mail</label>
+                                            <label className="block text-sm text-slate-400 mb-2">Seu melhor e-mail</label>
                                             <Input
                                                 type="email"
                                                 required
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
-                                                placeholder="comercial@focogestaocorporativa.com"
+                                                placeholder="seu@email.com"
                                                 disabled={status === 'loading'}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm text-slate-400 mb-2">WhatsApp / Celular</label>
+                                            <label className="block text-sm text-slate-400 mb-2">Seu WhatsApp</label>
                                             <Input
                                                 type="tel" // "tel" abre o teclado numérico no celular
                                                 required
                                                 value={formData.whatsapp}
                                                 onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
                                                 className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
-                                                placeholder="(31) 99876-0724"
+                                                placeholder="(31) 99999-9999"
                                                 disabled={status === 'loading'}
                                             />
                                         </div>

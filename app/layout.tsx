@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: 'FGC Expertise | Consultoria Empresarial e Financeira',
   description: 'Transforme sua empresa com a FGC Expertise. Consultoria especializada em gestão financeira, processos e crescimento estratégico.',
   keywords: ['consultoria', 'finanças', 'gestão empresarial', 'Belo Horizonte'],
+  icons: {
+    icon: '/logo-fgc.png',
+  },
   openGraph: {
     title: 'FGC Expertise',
     description: 'Consultoria de alta performance para o seu negócio.',
