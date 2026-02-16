@@ -71,10 +71,15 @@ export default function Footer() {
                         <div>
                             <h4 className="text-white font-semibold mb-6">Links Rápidos</h4>
                             <ul className="space-y-3">
-                                {['Diagnóstico Gratuito', 'Nossos Serviços', 'Sobre a FGC', 'Contato'].map((link, index) => (
+                                {[
+                                    { label: 'Diagnóstico Gratuito', href: '#hero' },
+                                    { label: 'Nossos Serviços', href: '#servicos' },
+                                    { label: 'Sobre a FGC', href: '#sobre' },
+                                    { label: 'Contato', href: '#contato' }
+                                ].map((link, index) => (
                                     <li key={index}>
-                                        <a href="#" className="text-slate-400 hover:text-amber-500 transition-colors">
-                                            {link}
+                                        <a href={link.href} className="text-slate-400 hover:text-amber-500 transition-colors">
+                                            {link.label}
                                         </a>
                                     </li>
                                 ))}

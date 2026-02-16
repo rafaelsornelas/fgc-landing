@@ -1,12 +1,13 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight, Phone, Mail, MapPin } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function CTASection() {
     return (
-        <section className="py-24 bg-white relative overflow-hidden">
+        <section id="contato" className="py-24 bg-white relative overflow-hidden">
             {/* Background */}
             <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-white to-slate-50" />
 
@@ -23,9 +24,11 @@ export default function CTASection() {
                         <div className="relative">
                             <div className="absolute -inset-4 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl transform -rotate-3" />
                             <div className="relative rounded-3xl overflow-hidden">
-                                <img
-                                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80"
+                                <Image
+                                    src="/img-equipe.jpg"
                                     alt="Equipe de consultoria"
+                                    width={800}
+                                    height={500}
                                     className="w-full h-[500px] object-cover"
                                 />
                             </div>

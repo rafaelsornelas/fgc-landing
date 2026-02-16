@@ -26,7 +26,7 @@ export default function MethodSection() {
     ];
 
     return (
-        <section className="py-24 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden">
+        <section id="metodo" className="py-24 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden">
             {/* Background Elements */}
             <div className="absolute inset-0">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
@@ -101,12 +101,17 @@ export default function MethodSection() {
                     <p className="text-slate-400 mb-6">
                         Pronto para transformar sua gestão?
                     </p>
-                    <div className="inline-flex items-center gap-2 text-amber-500 font-medium hover:text-amber-400 transition-colors cursor-pointer">
+                    <a
+                        href="https://chat.rafaelornelas.cloud/fgcexpertise"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-amber-500 font-medium hover:text-amber-400 transition-colors cursor-pointer"
+                    >
                         <span>Agende sua consultoria gratuita</span>
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
-                    </div>
+                    </a>
                 </motion.div>
             </div>
         </section>

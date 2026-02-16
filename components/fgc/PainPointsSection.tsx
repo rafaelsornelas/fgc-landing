@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { XCircle, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ export default function PainPointsSection() {
     ];
 
     return (
-        <section className="py-24 bg-white relative overflow-hidden">
+        <section id="problemas" className="py-24 bg-white relative overflow-hidden">
             {/* Decorative Elements */}
             <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-amber-50 to-transparent" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-slate-100 rounded-full -translate-x-1/2 translate-y-1/2" />
@@ -30,10 +31,13 @@ export default function PainPointsSection() {
                         <div className="relative">
                             {/* Main Image Container */}
                             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                                <img
-                                    src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80"
+                                <Image
+                                    src="/img-gestao.jpg"
                                     alt="Gestão empresarial"
+                                    width={800}
+                                    height={500}
                                     className="w-full h-[500px] object-cover"
+                                    priority
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
                             </div>

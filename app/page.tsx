@@ -1,4 +1,5 @@
 import React from 'react';
+import Navbar from '@/components/fgc/Navbar';
 import HeroSection from '@/components/fgc/HeroSection';
 import PainPointsSection from '@/components/fgc/PainPointsSection';
 import ServicesSection from '@/components/fgc/ServicesSection';
@@ -9,7 +10,8 @@ import Footer from '@/components/fgc/Footer';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white scroll-smooth">
+      <Navbar />
       <HeroSection />
       <PainPointsSection />
       <ServicesSection />

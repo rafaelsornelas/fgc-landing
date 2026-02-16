@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Award, Briefcase, GraduationCap, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ export default function AboutSection() {
     ];
 
     return (
-        <section className="py-24 bg-white relative overflow-hidden">
+        <section id="sobre" className="py-24 bg-white relative overflow-hidden">
             <div className="container mx-auto px-6 lg:px-12">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                     {/* Left - Content */}
@@ -89,9 +90,11 @@ export default function AboutSection() {
 
                             {/* Main Image */}
                             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                                <img
-                                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80"
+                                <Image
+                                    src="/img-aline.jpg"
                                     alt="Aline Oliveira - FGC"
+                                    width={800}
+                                    height={600}
                                     className="w-full h-[600px] object-cover"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />

@@ -25,13 +25,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'FGC Expertise',
     description: 'Consultoria de alta performance para o seu negócio.',
-    images: ['https://fgcexpertise.com.br/og-image.jpg'],
+    images: ['https://fgcexpertise.com.br/logo-fgc.png'],
   },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-br" className="scroll-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 
         {children}

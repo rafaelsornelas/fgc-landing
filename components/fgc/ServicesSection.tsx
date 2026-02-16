@@ -45,7 +45,7 @@ export default function ServicesSection() {
     ];
 
     return (
-        <section className="py-24 bg-slate-50 relative overflow-hidden">
+        <section id="servicos" className="py-24 bg-slate-50 relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(251,191,36,0.05),transparent_50%)]" />
 

@@ -9,8 +9,15 @@ export default function HeroSection() {
     const [formData, setFormData] = useState({ name: '', email: '', whatsapp: '' });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-    // URL do Webhook (Use a de TESTE para debugar, depois troque pela de PRODUÇÃO tirando o "-test")
     const WEBHOOK_URL = '/api/contact';
+
+    // Máscara de WhatsApp: (XX) XXXXX-XXXX
+    const maskWhatsApp = (value: string) => {
+        const digits = value.replace(/\D/g, '').slice(0, 11);
+        if (digits.length <= 2) return `(${digits}`;
+        if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+        return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,7 +63,7 @@ export default function HeroSection() {
     };
 
     return (
-        <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-[#211A60] to-slate-950">
+        <section id="hero" className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-[#211A60] to-slate-950">
             {/* Background Elements */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
@@ -199,12 +206,13 @@ export default function HeroSection() {
                                         <div>
                                             <label className="block text-sm text-slate-400 mb-2">Seu WhatsApp</label>
                                             <Input
-                                                type="tel" // "tel" abre o teclado numérico no celular
+                                                type="tel"
                                                 required
                                                 value={formData.whatsapp}
-                                                onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                                                onChange={(e) => setFormData({ ...formData, whatsapp: maskWhatsApp(e.target.value) })}
                                                 className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
                                                 placeholder="(31) 99999-9999"
+                                                maxLength={15}
                                                 disabled={status === 'loading'}
                                             />
                                         </div>
