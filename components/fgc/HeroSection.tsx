@@ -1,9 +1,39 @@
 'use client';
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+
+function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
+    const [count, setCount] = useState(0);
+    const ref = useRef<HTMLDivElement>(null);
+    const isInView = useInView(ref, { once: true });
+
+    useEffect(() => {
+        if (!isInView) return;
+        const duration = 2000;
+        const steps = 60;
+        const increment = value / steps;
+        let current = 0;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= value) {
+                setCount(value);
+                clearInterval(timer);
+            } else {
+                setCount(Math.floor(current));
+            }
+        }, duration / steps);
+        return () => clearInterval(timer);
+    }, [isInView, value]);
+
+    return (
+        <div ref={ref} className="text-3xl font-bold text-white">
+            {count}{suffix}
+        </div>
+    );
+}
 
 export default function HeroSection() {
     const [formData, setFormData] = useState({ name: '', email: '', whatsapp: '' });
@@ -126,9 +156,9 @@ export default function HeroSection() {
 
                         <div className="flex gap-12">
                             {[
-                                { value: '20+', label: 'Anos de experiência' },
-                                { value: '360º', label: 'Visão completa' },
-                                { value: '100%', label: 'Personalizado' }
+                                { value: 20, suffix: '+', label: 'Anos de experiência' },
+                                { value: 360, suffix: 'º', label: 'Visão completa' },
+                                { value: 100, suffix: '%', label: 'Personalizado' }
                             ].map((stat, index) => (
                                 <motion.div
                                     key={index}
@@ -136,7 +166,7 @@ export default function HeroSection() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.5 + index * 0.1 }}
                                 >
-                                    <div className="text-3xl font-bold text-white">{stat.value}</div>
+                                    <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                                     <div className="text-sm text-slate-500">{stat.label}</div>
                                 </motion.div>
                             ))}

@@ -109,9 +109,13 @@ export default function Footer() {
                         <p>Foco Gestão Corporativa LTDA</p>
                         <p>CNPJ: 57.965.476/0001-84</p>
                     </div>
-                    <p className="text-slate-500 text-sm">
-                        © {new Date().getFullYear()} FGC Expertise. Todos os direitos reservados.
-                    </p>
+                    <div className="flex items-center gap-4 text-slate-500 text-sm">
+                        <a href="/politica-de-privacidade" className="hover:text-amber-500 transition-colors">
+                            Política de Privacidade
+                        </a>
+                        <span>•</span>
+                        <p>© {new Date().getFullYear()} FGC Expertise. Todos os direitos reservados.</p>
+                    </div>
                 </div>
             </div>
         </footer>

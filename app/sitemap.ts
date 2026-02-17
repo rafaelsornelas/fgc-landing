@@ -10,12 +10,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: 'monthly',
             priority: 1,
         },
-        // Se tiver mais páginas (ex: sobre, contato), adicione aqui:
-        // {
-        //   url: `${baseUrl}/sobre`,
-        //   lastModified: new Date(),
-        //   changeFrequency: 'monthly',
-        //   priority: 0.8,
-        // },
+        {
+            url: `${baseUrl}/politica-de-privacidade`,
+            lastModified: new Date(),
+            changeFrequency: 'yearly',
+            priority: 0.3,
+        },
     ];
 }

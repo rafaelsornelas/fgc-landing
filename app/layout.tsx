@@ -3,7 +3,10 @@ import Script from 'next/script'
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { TypebotBubble } from '@/components/fgc/TypebotBubble'; // <--- 1. Importe aqui (ajuste o caminho se precisar)
+import { TypebotBubble } from '@/components/fgc/TypebotBubble';
+import WhatsAppButton from '@/components/fgc/WhatsAppButton';
+import CookieBanner from '@/components/fgc/CookieBanner';
+import LoadingScreen from '@/components/fgc/LoadingScreen';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,14 +37,48 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-br" className="scroll-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 
+        <LoadingScreen />
+
         {children}
 
-        <TypebotBubble /> {/* <--- 2. Adicione o componente AQUI, antes do fecha body */}
+        <WhatsAppButton />
+        <CookieBanner />
+        <TypebotBubble />
 
-        {/* Google Analytics - Melhor dentro do body */}
+        {/* JSON-LD Structured Data */}
+        <Script
+          id="json-ld"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'LocalBusiness',
+              name: 'FGC Expertise',
+              description: 'Consultoria empresarial e financeira 360º. Diagnóstico estratégico, planejamento, gestão comercial e capacitação de equipes.',
+              url: 'https://fgcexpertise.com.br',
+              logo: 'https://fgcexpertise.com.br/logo-fgc.png',
+              telephone: '+5531998760724',
+              email: 'comercial@focogestaocorporativa.com',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Belo Horizonte',
+                addressRegion: 'MG',
+                addressCountry: 'BR',
+              },
+              sameAs: [
+                'https://www.instagram.com/fgcexpertise',
+                'https://www.facebook.com/fgcexpertise',
+                'https://www.linkedin.com/company/105539965',
+              ],
+              priceRange: '$$',
+            }),
+          }}
+        />
+
+        {/* Google Analytics */}
         <GoogleAnalytics gaId="G-JCH294WZL4" />
 
-        {/* Microsoft Clarity - Melhor dentro do body */}
+        {/* Microsoft Clarity */}
         <Script id="microsoft-clarity" strategy="afterInteractive">
           {`
             (function(c,l,a,r,i,t,y){
