@@ -222,17 +222,17 @@ export default function DiagnosticoPage() {
         setSubmitting(true);
         try {
             const interpretation = getInterpretation();
-            await fetch('/api/contact', {
+            await fetch('/api/diagnostico', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    type: 'diagnostico',
                     name: contact.name,
                     email: contact.email,
                     whatsapp: contact.whatsapp,
                     empresa: contact.empresa,
                     iee: results.iee,
                     nivel: interpretation.title,
+                    respostas: answers,
                     setores_criticos: results.critical.map(s => `${s.name} (${s.percentage}%)`).join(', '),
                     setores_fortes: results.strong.map(s => `${s.name} (${s.percentage}%)`).join(', '),
                     detalhes: results.sectorScores.map(s => `${s.name}: ${s.percentage}%`).join(' | '),
