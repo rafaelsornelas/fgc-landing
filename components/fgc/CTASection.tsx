@@ -111,7 +111,7 @@ export default function CTASection() {
 
                         <Button
                             className="h-14 px-10 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-900 font-bold text-lg rounded-xl group shadow-lg shadow-amber-500/25"
-                            onClick={() => window.open('https://chat.rafaelornelas.cloud/fgcexpertise', '_blank')}
+                            onClick={() => window.location.href = '/diagnostico'}
                         >
                             Quero meu diagnóstico gratuito
                             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />

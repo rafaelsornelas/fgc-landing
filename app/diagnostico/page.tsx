@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, CheckCircle, Loader2, User, Mail, Phone, BarChart3, Target, AlertTriangle, TrendingUp, Calendar } from 'lucide-react';
 
@@ -125,10 +126,38 @@ const SCALE_COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#1
 // =============================================
 // COMPONENTE PRINCIPAL
 // =============================================
-export default function DiagnosticoPage() {
+// =============================================
+// COMPONENTE WRAPPER (Suspense boundary para useSearchParams)
+// =============================================
+export default function DiagnosticoPageWrapper() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0e1a] via-[#111827] to-[#0a0e1a] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+            </div>
+        }>
+            <DiagnosticoPage />
+        </Suspense>
+    );
+}
+
+function DiagnosticoPage() {
+    const searchParams = useSearchParams();
+
+    // Verifica se veio da landing page (com dados pré-preenchidos)
+    const prefillName = searchParams.get('name') || '';
+    const prefillEmail = searchParams.get('email') || '';
+    const prefillWhatsapp = searchParams.get('whatsapp') || '';
+    const hasPrefilledData = !!(prefillName && prefillEmail && prefillWhatsapp);
+
     // Step: 0 = dados pessoais, 1-12 = setores, 13 = resultado
-    const [step, setStep] = useState(0);
-    const [contact, setContact] = useState({ name: '', email: '', whatsapp: '', empresa: '' });
+    const [step, setStep] = useState(hasPrefilledData ? 1 : 0);
+    const [contact, setContact] = useState({
+        name: prefillName,
+        email: prefillEmail,
+        whatsapp: prefillWhatsapp,
+        empresa: ''
+    });
     const [answers, setAnswers] = useState<Record<string, number[]>>({});
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -249,7 +278,11 @@ export default function DiagnosticoPage() {
     // Navigate
     const canGoNext = () => {
         if (step === 0) return contact.name && contact.email && contact.whatsapp && contact.empresa;
-        if (step >= 1 && step <= SECTORS.length) return isSectorComplete(step - 1);
+        if (step >= 1 && step <= SECTORS.length) {
+            // No último setor, exigir empresa se ainda não tem
+            if (step === SECTORS.length && !contact.empresa) return false;
+            return isSectorComplete(step - 1);
+        }
         return true;
     };
 
@@ -378,6 +411,37 @@ export default function DiagnosticoPage() {
                                             </div>
                                         </div>
                                     ))}
+                                </div>
+                            </motion.div>
+                        );
+                    })()}
+
+                    {/* ===== EMPRESA INPUT (shown on last sector if empresa is missing) ===== */}
+                    {step === SECTORS.length && hasPrefilledData && !contact.empresa && (() => {
+                        const sector = SECTORS[step - 1];
+                        const sectorAnswers = answers[sector.id] || [];
+                        const allAnswered = sector.questions.every((_, i) => sectorAnswers[i] !== undefined);
+
+                        if (!allAnswered) return null;
+
+                        return (
+                            <motion.div
+                                key="empresa-input"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-8 max-w-md mx-auto"
+                            >
+                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5">
+                                    <label className="block text-sm text-amber-300 mb-2 font-medium">
+                                        <Target className="w-4 h-4 inline mr-1" />Quase lá! Qual o nome da sua empresa?
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={contact.empresa}
+                                        onChange={e => setContact({ ...contact, empresa: e.target.value })}
+                                        placeholder="Empresa LTDA"
+                                        className="w-full bg-slate-800/60 border border-slate-700 text-white rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
+                                    />
                                 </div>
                             </motion.div>
                         );

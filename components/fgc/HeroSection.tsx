@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, useInView } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,8 +37,9 @@ function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
 }
 
 export default function HeroSection() {
+    const router = useRouter();
     const [formData, setFormData] = useState({ name: '', email: '', whatsapp: '' });
-    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
 
     const WEBHOOK_URL = '/api/contact';
 
@@ -67,21 +69,22 @@ export default function HeroSection() {
             });
 
             if (response.ok) {
-                setStatus('success');
-                // --- CÓDIGO NOVO DO GA4 AQUI ---
-                // Verifica se o GA4 está carregado e dispara o evento
+                // Dispara evento GA4 de lead
                 if (typeof window !== 'undefined' && (window as any).gtag) {
                     (window as any).gtag('event', 'generate_lead', {
                         'event_category': 'Formulário',
                         'event_label': 'Landing Page Home',
-                        'value': 1 // (Opcional) Atribui valor de "1 conversão"
+                        'value': 1
                     });
                 }
 
-                // Limpa o formulário
-                setFormData({ name: '', email: '', whatsapp: '' });
-                // Reseta o status após 5 segundos para permitir novo envio
-                setTimeout(() => setStatus('idle'), 5000);
+                // Redireciona para o diagnóstico com os dados pré-preenchidos
+                const params = new URLSearchParams({
+                    name: formData.name,
+                    email: formData.email,
+                    whatsapp: formData.whatsapp,
+                });
+                router.push(`/diagnostico?${params.toString()}`);
             } else {
                 throw new Error('Falha no envio');
             }
@@ -193,82 +196,66 @@ export default function HeroSection() {
                                     </p>
                                 </div>
 
-                                {status === 'success' ? (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="text-center py-8"
-                                    >
-                                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/10 flex items-center justify-center">
-                                            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </div>
-                                        <h4 className="text-xl font-bold text-white mb-2">Solicitação Enviada!</h4>
-                                        <p className="text-slate-400 text-sm">Em breve entraremos em contato.</p>
-                                    </motion.div>
-                                ) : (
-                                    <form onSubmit={handleSubmit} className="space-y-5">
-                                        <div>
-                                            <label className="block text-sm text-slate-400 mb-2">Nome completo</label>
-                                            <Input
-                                                type="text"
-                                                required
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
-                                                placeholder="Seu nome"
-                                                disabled={status === 'loading'}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm text-slate-400 mb-2">Seu melhor e-mail</label>
-                                            <Input
-                                                type="email"
-                                                required
-                                                value={formData.email}
-                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
-                                                placeholder="seu@email.com"
-                                                disabled={status === 'loading'}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm text-slate-400 mb-2">Seu WhatsApp</label>
-                                            <Input
-                                                type="tel"
-                                                required
-                                                value={formData.whatsapp}
-                                                onChange={(e) => setFormData({ ...formData, whatsapp: maskWhatsApp(e.target.value) })}
-                                                className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
-                                                placeholder="(31) 99999-9999"
-                                                maxLength={15}
-                                                disabled={status === 'loading'}
-                                            />
-                                        </div>
-
-                                        {status === 'error' && (
-                                            <p className="text-red-400 text-sm text-center">Erro ao enviar. Tente novamente.</p>
-                                        )}
-
-                                        <Button
-                                            type="submit"
+                                <form onSubmit={handleSubmit} className="space-y-5">
+                                    <div>
+                                        <label className="block text-sm text-slate-400 mb-2">Nome completo</label>
+                                        <Input
+                                            type="text"
+                                            required
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
+                                            placeholder="Seu nome"
                                             disabled={status === 'loading'}
-                                            className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-900 font-semibold rounded-xl transition-all duration-300 group"
-                                        >
-                                            {status === 'loading' ? (
-                                                <span className="flex items-center gap-2">
-                                                    <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
-                                                </span>
-                                            ) : (
-                                                <>
-                                                    Quero meu diagnóstico
-                                                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                                </>
-                                            )}
-                                        </Button>
-                                    </form>
-                                )}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-slate-400 mb-2">Seu melhor e-mail</label>
+                                        <Input
+                                            type="email"
+                                            required
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
+                                            placeholder="seu@email.com"
+                                            disabled={status === 'loading'}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-slate-400 mb-2">Seu WhatsApp</label>
+                                        <Input
+                                            type="tel"
+                                            required
+                                            value={formData.whatsapp}
+                                            onChange={(e) => setFormData({ ...formData, whatsapp: maskWhatsApp(e.target.value) })}
+                                            className="w-full bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-xl focus:border-amber-500 focus:ring-amber-500/20"
+                                            placeholder="(31) 99999-9999"
+                                            maxLength={15}
+                                            disabled={status === 'loading'}
+                                        />
+                                    </div>
+
+                                    {status === 'error' && (
+                                        <p className="text-red-400 text-sm text-center">Erro ao enviar. Tente novamente.</p>
+                                    )}
+
+                                    <Button
+                                        type="submit"
+                                        disabled={status === 'loading'}
+                                        className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-900 font-semibold rounded-xl transition-all duration-300 group"
+                                    >
+                                        {status === 'loading' ? (
+                                            <span className="flex items-center gap-2">
+                                                <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
+                                            </span>
+                                        ) : (
+                                            <>
+                                                Quero meu diagnóstico
+                                                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </Button>
+                                </form>
 
                                 <p className="text-center text-xs text-slate-500 mt-6">
                                     Seus dados estão seguros conosco
