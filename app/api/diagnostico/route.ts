@@ -74,6 +74,13 @@ export async function POST(request: Request) {
         const setores_fortes = typeof data.setores_fortes === 'string' ? data.setores_fortes : '';
         const detalhes = typeof data.detalhes === 'string' ? data.detalhes : '';
 
+        // New company details fields
+        const cargo = typeof data.cargo === 'string' ? sanitize(data.cargo) : '';
+        const cnpj = typeof data.cnpj === 'string' ? sanitize(data.cnpj) : '';
+        const colaboradores = typeof data.colaboradores === 'string' ? sanitize(data.colaboradores) : '';
+        const faturamento = typeof data.faturamento === 'string' ? sanitize(data.faturamento) : '';
+        const cnpj_data = typeof data.cnpj_data === 'object' ? data.cnpj_data : null;
+
         // 1. Save to PocketBase
         const pbUrl = process.env.POCKETBASE_URL;
         if (pbUrl) {
@@ -84,6 +91,11 @@ export async function POST(request: Request) {
                     email,
                     whatsapp,
                     empresa,
+                    cargo,
+                    cnpj,
+                    colaboradores,
+                    faturamento,
+                    cnpj_data,
                     iee,
                     nivel,
                     respostas,
@@ -112,6 +124,10 @@ export async function POST(request: Request) {
                     email,
                     whatsapp,
                     empresa,
+                    cargo,
+                    cnpj,
+                    colaboradores,
+                    faturamento,
                     iee,
                     nivel,
                     setores_criticos,

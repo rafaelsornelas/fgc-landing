@@ -150,19 +150,26 @@ function DiagnosticoPage() {
     const prefillWhatsapp = searchParams.get('whatsapp') || '';
     const hasPrefilledData = !!(prefillName && prefillEmail && prefillWhatsapp);
 
-    // Step: 0 = dados pessoais, 1-12 = setores, 13 = resultado
+    // Step: 0 = dados pessoais, 1 = dados da empresa, 2-13 = setores, 14 = resultado
     const [step, setStep] = useState(hasPrefilledData ? 1 : 0);
     const [contact, setContact] = useState({
         name: prefillName,
         email: prefillEmail,
         whatsapp: prefillWhatsapp,
-        empresa: ''
+        cargo: '',
+        cnpj: '',
+        empresa: '',
+        colaboradores: '',
+        faturamento: '',
     });
+    const [cnpjData, setCnpjData] = useState<any>(null);
+    const [cnpjLoading, setCnpjLoading] = useState(false);
+    const [cnpjError, setCnpjError] = useState('');
     const [answers, setAnswers] = useState<Record<string, number[]>>({});
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
-    const totalSteps = SECTORS.length + 2; // contact + sectors + result
+    const totalSteps = SECTORS.length + 3; // contact + company + sectors + result
     const progress = (step / (totalSteps - 1)) * 100;
 
     // Máscara WhatsApp
@@ -171,6 +178,42 @@ function DiagnosticoPage() {
         if (digits.length <= 2) return `(${digits}`;
         if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
         return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    };
+
+    // Máscara CNPJ: XX.XXX.XXX/XXXX-XX
+    const maskCNPJ = (value: string) => {
+        const digits = value.replace(/\D/g, '').slice(0, 14);
+        if (digits.length <= 2) return digits;
+        if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+        if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+        if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+        return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+    };
+
+    // Busca CNPJ na BrasilAPI
+    const lookupCNPJ = async () => {
+        const digits = contact.cnpj.replace(/\D/g, '');
+        if (digits.length !== 14) {
+            setCnpjError('CNPJ deve ter 14 dígitos');
+            return;
+        }
+        setCnpjLoading(true);
+        setCnpjError('');
+        try {
+            const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+            if (!res.ok) throw new Error('CNPJ não encontrado');
+            const data = await res.json();
+            setCnpjData(data);
+            setContact(prev => ({
+                ...prev,
+                empresa: data.nome_fantasia || data.razao_social || '',
+            }));
+        } catch (e) {
+            setCnpjError('CNPJ não encontrado. Verifique e tente novamente.');
+            setCnpjData(null);
+        } finally {
+            setCnpjLoading(false);
+        }
     };
 
     // Set answer for a specific sector/question
@@ -258,7 +301,12 @@ function DiagnosticoPage() {
                     name: contact.name,
                     email: contact.email,
                     whatsapp: contact.whatsapp,
+                    cargo: contact.cargo,
+                    cnpj: contact.cnpj,
                     empresa: contact.empresa,
+                    colaboradores: contact.colaboradores,
+                    faturamento: contact.faturamento,
+                    cnpj_data: cnpjData,
                     iee: results.iee,
                     nivel: interpretation.title,
                     respostas: answers,
@@ -277,17 +325,14 @@ function DiagnosticoPage() {
 
     // Navigate
     const canGoNext = () => {
-        if (step === 0) return contact.name && contact.email && contact.whatsapp && contact.empresa;
-        if (step >= 1 && step <= SECTORS.length) {
-            // No último setor, exigir empresa se ainda não tem
-            if (step === SECTORS.length && !contact.empresa) return false;
-            return isSectorComplete(step - 1);
-        }
+        if (step === 0) return contact.name && contact.email && contact.whatsapp;
+        if (step === 1) return contact.cargo && contact.empresa && contact.colaboradores && contact.faturamento;
+        if (step >= 2 && step <= SECTORS.length + 1) return isSectorComplete(step - 2);
         return true;
     };
 
     const goNext = () => {
-        if (step === SECTORS.length) {
+        if (step === SECTORS.length + 1) {
             // Last sector → show results and submit
             setStep(step + 1);
             handleSubmit();
@@ -306,7 +351,7 @@ function DiagnosticoPage() {
                         <span className="text-sm text-slate-400 hidden sm:inline">Diagnóstico Empresarial</span>
                     </div>
                     <div className="text-sm text-slate-500">
-                        {step > 0 && step <= SECTORS.length && `${step} de ${SECTORS.length} setores`}
+                        {step >= 2 && step <= SECTORS.length + 1 && `${step - 1} de ${SECTORS.length} setores`}
                     </div>
                 </div>
                 {/* Progress bar */}
@@ -351,17 +396,149 @@ function DiagnosticoPage() {
                                     <label className="block text-sm text-slate-400 mb-2"><Phone className="w-4 h-4 inline mr-1" />WhatsApp</label>
                                     <input type="tel" value={contact.whatsapp} onChange={e => setContact({ ...contact, whatsapp: maskWhatsApp(e.target.value) })} placeholder="(31) 99999-9999" maxLength={15} className="w-full bg-slate-800/60 border border-slate-700 text-white rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30" />
                                 </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* ===== STEP 1: Dados da Empresa ===== */}
+                    {step === 1 && (
+                        <motion.div key="company" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
+                            <div className="text-center mb-10">
+                                <div className="inline-flex items-center gap-2 bg-amber-500/10 text-amber-400 text-sm font-medium px-4 py-2 rounded-full mb-6">
+                                    <Target className="w-4 h-4" /> Dados da Empresa
+                                </div>
+                                <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                                    Conte-nos sobre sua empresa
+                                </h2>
+                                <p className="text-slate-400 max-w-lg mx-auto text-sm">
+                                    Essas informações nos ajudam a personalizar seu diagnóstico.
+                                </p>
+                            </div>
+
+                            <div className="max-w-md mx-auto space-y-5">
+                                {/* Cargo */}
                                 <div>
-                                    <label className="block text-sm text-slate-400 mb-2"><Target className="w-4 h-4 inline mr-1" />Nome da Empresa</label>
-                                    <input type="text" value={contact.empresa} onChange={e => setContact({ ...contact, empresa: e.target.value })} placeholder="Empresa LTDA" className="w-full bg-slate-800/60 border border-slate-700 text-white rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30" />
+                                    <label className="block text-sm text-slate-400 mb-2"><User className="w-4 h-4 inline mr-1" />Seu Cargo</label>
+                                    <input type="text" value={contact.cargo} onChange={e => setContact({ ...contact, cargo: e.target.value })} placeholder="Ex: Sócio, Diretor, Gerente..." className="w-full bg-slate-800/60 border border-slate-700 text-white rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30" />
+                                </div>
+
+                                {/* CNPJ */}
+                                <div>
+                                    <label className="block text-sm text-slate-400 mb-2"><Target className="w-4 h-4 inline mr-1" />CNPJ da Empresa</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={contact.cnpj}
+                                            onChange={e => {
+                                                setCnpjError('');
+                                                setCnpjData(null);
+                                                setContact(prev => ({ ...prev, cnpj: maskCNPJ(e.target.value), empresa: '' }));
+                                            }}
+                                            placeholder="00.000.000/0000-00"
+                                            maxLength={18}
+                                            className="flex-1 bg-slate-800/60 border border-slate-700 text-white rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={lookupCNPJ}
+                                            disabled={cnpjLoading || contact.cnpj.replace(/\D/g, '').length !== 14}
+                                            className="px-4 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                            style={{
+                                                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                                color: '#0a0e1a',
+                                            }}
+                                        >
+                                            {cnpjLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Buscar'}
+                                        </button>
+                                    </div>
+                                    {cnpjError && <p className="text-red-400 text-xs mt-2">{cnpjError}</p>}
+
+                                    {/* Dados retornados da BrasilAPI */}
+                                    {cnpjData && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mt-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 space-y-1"
+                                        >
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                                <span className="text-sm font-semibold text-emerald-400">Empresa encontrada!</span>
+                                            </div>
+                                            <p className="text-sm text-slate-300"><span className="text-slate-500">Razão Social:</span> {cnpjData.razao_social}</p>
+                                            {cnpjData.nome_fantasia && <p className="text-sm text-slate-300"><span className="text-slate-500">Nome Fantasia:</span> {cnpjData.nome_fantasia}</p>}
+                                            <p className="text-sm text-slate-300"><span className="text-slate-500">Situação:</span> {cnpjData.descricao_situacao_cadastral}</p>
+                                            {cnpjData.cnae_fiscal_descricao && <p className="text-sm text-slate-300"><span className="text-slate-500">Atividade:</span> {cnpjData.cnae_fiscal_descricao}</p>}
+                                            {(cnpjData.municipio || cnpjData.uf) && <p className="text-sm text-slate-300"><span className="text-slate-500">Local:</span> {cnpjData.municipio} - {cnpjData.uf}</p>}
+                                        </motion.div>
+                                    )}
+
+                                    {/* Input manual da empresa (aparece após buscar com sucesso OU se quiser editar) */}
+                                    {(cnpjData || contact.empresa) && (
+                                        <div className="mt-3">
+                                            <label className="block text-xs text-slate-500 mb-1">Nome da empresa (editável)</label>
+                                            <input type="text" value={contact.empresa} onChange={e => setContact({ ...contact, empresa: e.target.value })} className="w-full bg-slate-800/60 border border-slate-700 text-white rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 text-sm" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Número de Colaboradores */}
+                                <div>
+                                    <label className="block text-sm text-slate-400 mb-3">👥 Número de Colaboradores</label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {['1 a 10', '11 a 50', '51 a 100', '101 a 200', 'Mais de 200'].map((option) => {
+                                            const isSelected = contact.colaboradores === option;
+                                            return (
+                                                <button
+                                                    key={option}
+                                                    type="button"
+                                                    onClick={() => setContact({ ...contact, colaboradores: option })}
+                                                    className="px-4 py-3 rounded-xl text-sm transition-all duration-200"
+                                                    style={{
+                                                        border: isSelected ? '2px solid #f59e0b' : '2px solid rgba(100,116,139,0.3)',
+                                                        background: isSelected ? 'rgba(245,158,11,0.15)' : 'transparent',
+                                                        color: isSelected ? '#fbbf24' : '#94a3b8',
+                                                        fontWeight: isSelected ? 700 : 400,
+                                                    }}
+                                                >
+                                                    {option}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Faturamento Mensal Médio */}
+                                <div>
+                                    <label className="block text-sm text-slate-400 mb-3">💰 Faturamento Mensal Médio</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {['Até R$ 10 mil', 'R$ 10 mil a R$ 50 mil', 'R$ 50 mil a R$ 200 mil', 'Acima de R$ 200 mil'].map((option) => {
+                                            const isSelected = contact.faturamento === option;
+                                            return (
+                                                <button
+                                                    key={option}
+                                                    type="button"
+                                                    onClick={() => setContact({ ...contact, faturamento: option })}
+                                                    className="px-4 py-3 rounded-xl text-sm transition-all duration-200"
+                                                    style={{
+                                                        border: isSelected ? '2px solid #f59e0b' : '2px solid rgba(100,116,139,0.3)',
+                                                        background: isSelected ? 'rgba(245,158,11,0.15)' : 'transparent',
+                                                        color: isSelected ? '#fbbf24' : '#94a3b8',
+                                                        fontWeight: isSelected ? 700 : 400,
+                                                    }}
+                                                >
+                                                    {option}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
                     )}
 
-                    {/* ===== STEPS 1-12: Sectors ===== */}
-                    {step >= 1 && step <= SECTORS.length && (() => {
-                        const sector = SECTORS[step - 1];
+                    {/* ===== STEPS 2-13: Sectors ===== */}
+                    {step >= 2 && step <= SECTORS.length + 1 && (() => {
+                        const sector = SECTORS[step - 2];
                         const sectorAnswers = answers[sector.id] || [];
                         return (
                             <motion.div key={sector.id} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
@@ -369,7 +546,7 @@ function DiagnosticoPage() {
                                     <div className="flex items-center gap-3 mb-2">
                                         <span className="text-3xl">{sector.icon}</span>
                                         <div>
-                                            <p className="text-xs text-slate-500 uppercase tracking-wider">Setor {step} de {SECTORS.length}</p>
+                                            <p className="text-xs text-slate-500 uppercase tracking-wider">Setor {step - 1} de {SECTORS.length}</p>
                                             <h2 className="text-2xl font-bold">{sector.name}</h2>
                                         </div>
                                     </div>
@@ -416,39 +593,8 @@ function DiagnosticoPage() {
                         );
                     })()}
 
-                    {/* ===== EMPRESA INPUT (shown on last sector if empresa is missing) ===== */}
-                    {step === SECTORS.length && hasPrefilledData && !contact.empresa && (() => {
-                        const sector = SECTORS[step - 1];
-                        const sectorAnswers = answers[sector.id] || [];
-                        const allAnswered = sector.questions.every((_, i) => sectorAnswers[i] !== undefined);
-
-                        if (!allAnswered) return null;
-
-                        return (
-                            <motion.div
-                                key="empresa-input"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mt-8 max-w-md mx-auto"
-                            >
-                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5">
-                                    <label className="block text-sm text-amber-300 mb-2 font-medium">
-                                        <Target className="w-4 h-4 inline mr-1" />Quase lá! Qual o nome da sua empresa?
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={contact.empresa}
-                                        onChange={e => setContact({ ...contact, empresa: e.target.value })}
-                                        placeholder="Empresa LTDA"
-                                        className="w-full bg-slate-800/60 border border-slate-700 text-white rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
-                                    />
-                                </div>
-                            </motion.div>
-                        );
-                    })()}
-
                     {/* ===== STEP FINAL: Results ===== */}
-                    {step === SECTORS.length + 1 && (
+                    {step === SECTORS.length + 2 && (
                         <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                             {submitting ? (
                                 <div className="text-center py-20">
@@ -463,11 +609,11 @@ function DiagnosticoPage() {
                 </AnimatePresence>
 
                 {/* Navigation Buttons */}
-                {step <= SECTORS.length && (
+                {step <= SECTORS.length + 1 && (
                     <div className="flex justify-between items-center mt-10 pt-6 border-t border-slate-800/50">
                         <button
-                            onClick={() => setStep(Math.max(0, step - 1))}
-                            disabled={step === 0}
+                            onClick={() => setStep(Math.max(hasPrefilledData ? 1 : 0, step - 1))}
+                            disabled={step === 0 || (hasPrefilledData && step === 1)}
                             className="flex items-center gap-2 px-5 py-3 text-sm text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4" /> Voltar
@@ -481,7 +627,7 @@ function DiagnosticoPage() {
                                 color: canGoNext() ? '#0a0e1a' : '#64748b',
                             }}
                         >
-                            {step === SECTORS.length ? 'Ver Resultado' : 'Próximo'}
+                            {step === SECTORS.length + 1 ? 'Ver Resultado' : 'Próximo'}
                             <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
