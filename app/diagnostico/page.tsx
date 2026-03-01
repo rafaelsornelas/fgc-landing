@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, CheckCircle, Loader2, User, Mail, Phone, BarChart3, Target, AlertTriangle, TrendingUp, Calendar } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, Loader2, User, Mail, Phone, BarChart3, Target, AlertTriangle, TrendingUp, Calendar, ChevronDown, PenLine } from 'lucide-react';
 
 // =============================================
 // DADOS DO DIAGNÓSTICO
@@ -166,6 +166,8 @@ function DiagnosticoPage() {
     const [cnpjLoading, setCnpjLoading] = useState(false);
     const [cnpjError, setCnpjError] = useState('');
     const [answers, setAnswers] = useState<Record<string, number[]>>({});
+    const [notes, setNotes] = useState<Record<string, string>>({});
+    const [openNotes, setOpenNotes] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
@@ -310,6 +312,7 @@ function DiagnosticoPage() {
                     iee: results.iee,
                     nivel: interpretation.title,
                     respostas: answers,
+                    notas: notes,
                     setores_criticos: results.critical.map(s => `${s.name} (${s.percentage}%)`).join(', '),
                     setores_fortes: results.strong.map(s => `${s.name} (${s.percentage}%)`).join(', '),
                     detalhes: results.sectorScores.map(s => `${s.name}: ${s.percentage}%`).join(' | '),
@@ -589,6 +592,41 @@ function DiagnosticoPage() {
                                         </div>
                                     ))}
                                 </div>
+
+                                {/* ── Accordion de Notas ── */}
+                                <div className="mt-6 border-t border-slate-700/50 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenNotes(openNotes === sector.id ? null : sector.id)}
+                                        className="flex items-center gap-2 text-sm text-slate-400 hover:text-amber-400 transition-colors w-full"
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0' }}
+                                    >
+                                        <PenLine className="w-4 h-4" />
+                                        <span>Observações sobre {sector.name}</span>
+                                        <ChevronDown
+                                            className="w-4 h-4 ml-auto transition-transform duration-200"
+                                            style={{ transform: openNotes === sector.id ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                                        />
+                                    </button>
+                                    {openNotes === sector.id && (
+                                        <motion.div
+                                            key="notes-box"
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <textarea
+                                                value={notes[sector.id] || ''}
+                                                onChange={e => setNotes(prev => ({ ...prev, [sector.id]: e.target.value }))}
+                                                placeholder={`Anote aqui observações sobre ${sector.name.toLowerCase()} da sua empresa...`}
+                                                rows={4}
+                                                className="w-full mt-2 bg-slate-800/60 border border-slate-700 text-white text-sm rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 resize-none"
+                                            />
+                                        </motion.div>
+                                    )}
+                                </div>
+
                             </motion.div>
                         );
                     })()}
@@ -633,7 +671,7 @@ function DiagnosticoPage() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
 

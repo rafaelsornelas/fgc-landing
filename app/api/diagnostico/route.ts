@@ -70,6 +70,7 @@ export async function POST(request: Request) {
         const iee = typeof data.iee === 'number' ? data.iee : 0;
         const nivel = typeof data.nivel === 'string' ? sanitize(data.nivel) : '';
         const respostas = typeof data.respostas === 'object' ? data.respostas : {};
+        const notas = typeof data.notas === 'object' ? data.notas : {};
         const setores_criticos = typeof data.setores_criticos === 'string' ? data.setores_criticos : '';
         const setores_fortes = typeof data.setores_fortes === 'string' ? data.setores_fortes : '';
         const detalhes = typeof data.detalhes === 'string' ? data.detalhes : '';
@@ -99,6 +100,7 @@ export async function POST(request: Request) {
                     iee,
                     nivel,
                     respostas,
+                    notas,
                     setores_criticos,
                     setores_fortes,
                     detalhes,
@@ -133,6 +135,7 @@ export async function POST(request: Request) {
                     setores_criticos,
                     setores_fortes,
                     detalhes,
+                    notas,
                     origem: 'Diagnóstico Empresarial - Landing Page FGC',
                     data: new Date().toISOString(),
                 }),
