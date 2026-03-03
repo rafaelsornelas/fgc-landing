@@ -15,7 +15,7 @@ export default function ServicesSection() {
         {
             icon: Target,
             title: "Diagnóstico Estratégico",
-            description: "Analisamos profundamente sua clínica ou consultório para identificar pontos fortes, áreas de melhoria e oportunidades únicas.",
+            description: "Analisamos profundamente sua empresa para identificar pontos fortes, áreas de melhoria e oportunidades únicas.",
             color: "from-blue-500 to-blue-600"
         },
         {

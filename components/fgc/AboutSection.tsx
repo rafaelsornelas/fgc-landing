@@ -44,7 +44,7 @@ export default function AboutSection() {
 
                         <p className="text-lg text-slate-600 mb-10 leading-relaxed">
                             Identificando a necessidade do mercado por uma consultoria verdadeiramente
-                            360º especializada em clínicas e consultórios, Aline criou a FGC para
+                            360º para empresas de todos os segmentos, Aline criou a FGC para
                             oferecer soluções personalizadas que realmente transformam negócios.
                         </p>
 
