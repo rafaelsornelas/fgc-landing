@@ -84,35 +84,35 @@ export async function POST(request: Request) {
 
         // 1. Save to PocketBase
         const pbUrl = process.env.POCKETBASE_URL;
-        if (pbUrl) {
-            try {
-                const pb = new PocketBase(pbUrl);
-                await pb.collection('diagnosticos').create({
-                    nome: name,
-                    email,
-                    whatsapp,
-                    empresa,
-                    cargo,
-                    cnpj,
-                    colaboradores,
-                    faturamento,
-                    cnpj_data,
-                    iee,
-                    nivel,
-                    respostas,
-                    notas,
-                    setores_criticos,
-                    setores_fortes,
-                    detalhes,
-                });
-                console.log('✅ Diagnóstico salvo no PocketBase');
-            } catch (pbError) {
-                console.error('❌ Erro ao salvar no PocketBase:', pbError);
-                // Don't fail the request if PocketBase save fails
-                // The webhook will still fire below
-            }
-        } else {
-            console.warn('⚠️ POCKETBASE_URL não configurada, pulando salvamento no banco');
+        if (!pbUrl) {
+            console.error('❌ POCKETBASE_URL não configurada');
+            return NextResponse.json({ error: 'Erro de configuração do servidor' }, { status: 500 });
+        }
+
+        try {
+            const pb = new PocketBase(pbUrl);
+            await pb.collection('diagnosticos').create({
+                nome: name,
+                email,
+                whatsapp,
+                empresa,
+                cargo,
+                cnpj,
+                colaboradores,
+                faturamento,
+                cnpj_data,
+                iee,
+                nivel,
+                respostas,
+                notas,
+                setores_criticos,
+                setores_fortes,
+                detalhes,
+            });
+            console.log('✅ Diagnóstico salvo no PocketBase');
+        } catch (pbError) {
+            console.error('❌ Erro ao salvar no PocketBase:', pbError);
+            return NextResponse.json({ error: 'Erro ao salvar diagnóstico. Tente novamente.' }, { status: 500 });
         }
 
         // 2. Send to n8n webhook (existing behavior)

@@ -141,6 +141,8 @@ export default function DiagnosticoPageWrapper() {
     );
 }
 
+const STORAGE_KEY = 'fgc_diagnostico_rascunho';
+
 function DiagnosticoPage() {
     const searchParams = useSearchParams();
 
@@ -170,6 +172,51 @@ function DiagnosticoPage() {
     const [openNotes, setOpenNotes] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [showResume, setShowResume] = useState(false);
+
+    // ── Recuperar rascunho salvo no localStorage ──
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const draft = JSON.parse(saved);
+                // Só mostra o diálogo se houver progresso real (pelo menos step > 0 ou respostas)
+                if (draft.step > 0 || Object.keys(draft.answers || {}).length > 0) {
+                    setShowResume(true);
+                }
+            }
+        } catch { /* localStorage indisponível ou JSON inválido */ }
+    }, []);
+
+    const resumeDraft = () => {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const draft = JSON.parse(saved);
+                if (draft.contact) setContact(draft.contact);
+                if (draft.answers) setAnswers(draft.answers);
+                if (draft.notes) setNotes(draft.notes);
+                if (draft.cnpjData) setCnpjData(draft.cnpjData);
+                if (typeof draft.step === 'number') setStep(draft.step);
+            }
+        } catch { /* ignora */ }
+        setShowResume(false);
+    };
+
+    const discardDraft = () => {
+        try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignora */ }
+        setShowResume(false);
+    };
+
+    // ── Auto-save no localStorage a cada mudança de step ──
+    useEffect(() => {
+        // Não salva se está na tela de resultado final já submetida
+        if (submitted) return;
+        try {
+            const draft = { step, contact, answers, notes, cnpjData, savedAt: new Date().toISOString() };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+        } catch { /* localStorage cheio ou indisponível */ }
+    }, [step, contact, answers, notes, cnpjData, submitted]);
 
     const totalSteps = SECTORS.length + 3; // contact + company + sectors + result
     const progress = (step / (totalSteps - 1)) * 100;
@@ -291,12 +338,15 @@ function DiagnosticoPage() {
         };
     };
 
+    const [submitError, setSubmitError] = useState('');
+
     // Submit results
     const handleSubmit = async () => {
         setSubmitting(true);
+        setSubmitError('');
         try {
             const interpretation = getInterpretation();
-            await fetch('/api/diagnostico', {
+            const response = await fetch('/api/diagnostico', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -318,9 +368,16 @@ function DiagnosticoPage() {
                     detalhes: results.sectorScores.map(s => `${s.name}: ${s.percentage}%`).join(' | '),
                 }),
             });
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || 'Erro ao salvar diagnóstico');
+            }
             setSubmitted(true);
-        } catch (e) {
+            // Limpa rascunho do localStorage após salvar com sucesso
+            try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignora */ }
+        } catch (e: any) {
             console.error('Erro ao enviar diagnóstico:', e);
+            setSubmitError(e.message || 'Erro de conexão. Verifique sua internet e tente novamente.');
         } finally {
             setSubmitting(false);
         }
@@ -346,6 +403,46 @@ function DiagnosticoPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0a0e1a] via-[#111827] to-[#0a0e1a] text-white">
+            {/* ── Diálogo de Recuperação de Rascunho ── */}
+            {showResume && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                    style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+                >
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+                    >
+                        <div className="text-center mb-5">
+                            <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <BarChart3 className="w-6 h-6 text-amber-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-white">Diagnóstico em andamento</h3>
+                            <p className="text-sm text-slate-400 mt-2">
+                                Encontramos um diagnóstico que não foi finalizado. Deseja continuar de onde parou?
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={discardDraft}
+                                className="flex-1 px-4 py-3 text-sm font-medium rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 transition-colors"
+                            >
+                                Começar Novo
+                            </button>
+                            <button
+                                onClick={resumeDraft}
+                                className="flex-1 px-4 py-3 text-sm font-semibold rounded-xl transition-all"
+                                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#0a0e1a' }}
+                            >
+                                Continuar
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
             {/* Header */}
             <header className="border-b border-slate-800/50 bg-slate-900/50 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -640,7 +737,28 @@ function DiagnosticoPage() {
                                     <p className="text-slate-400">Analisando suas respostas...</p>
                                 </div>
                             ) : (
-                                <ResultsView results={results} interpretation={getInterpretation()} contact={contact} />
+                                <>
+                                    {submitError && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center justify-between gap-4"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                                                <p className="text-sm text-red-300">{submitError}</p>
+                                            </div>
+                                            <button
+                                                onClick={handleSubmit}
+                                                className="px-4 py-2 text-sm font-semibold rounded-lg flex-shrink-0 transition-all"
+                                                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#0a0e1a' }}
+                                            >
+                                                Tentar Novamente
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                    <ResultsView results={results} interpretation={getInterpretation()} contact={contact} />
+                                </>
                             )}
                         </motion.div>
                     )}
