@@ -632,6 +632,40 @@ function DiagnosticoPage() {
                                         })}
                                     </div>
                                 </div>
+
+                                {/* Observações do step Dados da Empresa */}
+                                <div className="pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenNotes(openNotes === 'dados_empresa' ? null : 'dados_empresa')}
+                                        className="flex items-center gap-2 text-sm text-slate-400 hover:text-amber-400 transition-colors w-full"
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0' }}
+                                    >
+                                        <PenLine className="w-4 h-4" />
+                                        <span>Observações sobre Dados da Empresa</span>
+                                        <ChevronDown
+                                            className="w-4 h-4 ml-auto transition-transform duration-200"
+                                            style={{ transform: openNotes === 'dados_empresa' ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                                        />
+                                    </button>
+                                    {openNotes === 'dados_empresa' && (
+                                        <motion.div
+                                            key="notes-company"
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <textarea
+                                                value={notes['dados_empresa'] || ''}
+                                                onChange={e => setNotes(prev => ({ ...prev, dados_empresa: e.target.value }))}
+                                                placeholder="Anotações adicionais sobre o contexto da empresa..."
+                                                rows={4}
+                                                className="w-full mt-2 bg-slate-800/60 border border-slate-700 text-white text-sm rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 resize-none"
+                                            />
+                                        </motion.div>
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     )}
