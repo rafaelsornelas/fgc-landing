@@ -38,6 +38,8 @@ export default function CookieBanner() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    role="dialog"
+                    aria-label="Configurações de cookies"
                     className="fixed bottom-0 left-0 right-0 z-[60] p-4 md:p-6"
                 >
                     <div className="max-w-4xl mx-auto bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-2xl shadow-black/20">

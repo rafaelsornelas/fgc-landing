@@ -1,36 +1,10 @@
 import { NextResponse } from 'next/server';
 import PocketBase from 'pocketbase';
+import { createRateLimiter, sanitize, validateEmail, validateWhatsApp } from '../../../lib/api-utils';
 
-// Simple in-memory rate limiter
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW = 60 * 1000;
-
-function isRateLimited(ip: string): boolean {
-    const now = Date.now();
-    const entry = rateLimitMap.get(ip);
-
-    if (!entry || now > entry.resetAt) {
-        rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
-        return false;
-    }
-
-    entry.count++;
-    return entry.count > RATE_LIMIT_MAX;
-}
-
-function validateEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function validateWhatsApp(phone: string): boolean {
-    const cleaned = phone.replace(/\D/g, '');
-    return cleaned.length >= 10 && cleaned.length <= 13;
-}
-
-function sanitize(str: string): string {
-    return str.trim().slice(0, 200);
-}
+const isRateLimited = createRateLimiter(RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
 
 export async function POST(request: Request) {
     try {

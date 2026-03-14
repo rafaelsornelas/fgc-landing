@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion, useInView } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -130,9 +131,11 @@ export default function HeroSection() {
                             transition={{ delay: 0.3 }}
                         >
                             {/* IMAGEM DA LOGO AQUI - Certifique-se de que o arquivo existe em public/ */}
-                            <img
+                            <Image
                                 src="/logo-fgc.png"
                                 alt="FGC Expertise Logo"
+                                width={256}
+                                height={96}
                                 className="h-auto w-48 md:w-64 object-contain"
                             />
                         </motion.div>
@@ -196,11 +199,12 @@ export default function HeroSection() {
                                     </p>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="space-y-5">
+                                <form onSubmit={handleSubmit} className="space-y-5" aria-label="Formulário de diagnóstico gratuito">
                                     <div>
                                         <label className="block text-sm text-slate-400 mb-2">Nome completo</label>
                                         <Input
                                             type="text"
+                                            aria-label="Nome completo"
                                             required
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -213,6 +217,7 @@ export default function HeroSection() {
                                         <label className="block text-sm text-slate-400 mb-2">Seu melhor e-mail</label>
                                         <Input
                                             type="email"
+                                            aria-label="Seu melhor e-mail"
                                             required
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -225,6 +230,7 @@ export default function HeroSection() {
                                         <label className="block text-sm text-slate-400 mb-2">Seu WhatsApp</label>
                                         <Input
                                             type="tel"
+                                            aria-label="Seu WhatsApp"
                                             required
                                             value={formData.whatsapp}
                                             onChange={(e) => setFormData({ ...formData, whatsapp: maskWhatsApp(e.target.value) })}

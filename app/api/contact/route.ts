@@ -1,36 +1,9 @@
 import { NextResponse } from 'next/server';
+import { createRateLimiter, sanitize, validateEmail, validateWhatsApp } from '../../../lib/api-utils';
 
-// Simple in-memory rate limiter (resets on server restart, which is fine for edge/serverless)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 5; // max requests
 const RATE_LIMIT_WINDOW = 60 * 1000; // per 1 minute
-
-function isRateLimited(ip: string): boolean {
-    const now = Date.now();
-    const entry = rateLimitMap.get(ip);
-
-    if (!entry || now > entry.resetAt) {
-        rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
-        return false;
-    }
-
-    entry.count++;
-    return entry.count > RATE_LIMIT_MAX;
-}
-
-function validateEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function validateWhatsApp(phone: string): boolean {
-    // Accept Brazilian phone formats: (XX) XXXXX-XXXX, XXXXXXXXXXX, +55XXXXXXXXXXX, etc.
-    const cleaned = phone.replace(/\D/g, '');
-    return cleaned.length >= 10 && cleaned.length <= 13;
-}
-
-function sanitize(str: string): string {
-    return str.trim().slice(0, 200); // limit length and trim whitespace
-}
+const isRateLimited = createRateLimiter(RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
 
 export async function POST(request: Request) {
     try {
