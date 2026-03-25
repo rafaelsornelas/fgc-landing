@@ -10,6 +10,8 @@ export default function AboutSection() {
         { icon: GraduationCap, text: "Comunicação Social & Relações Públicas" },
         { icon: Award, text: "MBA em Gestão e Desenvolvimento de Pessoas" },
         { icon: Award, text: "Especialização em Marketing e Mídias Digitais" },
+        { icon: Award, text: "Especializando em Gestao Empresarial" },
+        { icon: Award, text: "Coaching Business" },
         { icon: Briefcase, text: "20+ anos de experiência corporativa" }
     ];
 
@@ -91,11 +93,12 @@ export default function AboutSection() {
                             {/* Main Image */}
                             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                                 <Image
-                                    src="/img-aline.jpg"
+                                    src="/img-aline.webp"
                                     alt="Aline Oliveira - FGC"
                                     width={800}
-                                    height={600}
-                                    className="w-full h-[600px] object-cover"
+                                    height={1000}
+                                    className="w-full h-[600px] object-cover object-top bg-slate-200"
+                                    priority
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
                             </div>
