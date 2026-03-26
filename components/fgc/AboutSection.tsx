@@ -10,7 +10,7 @@ export default function AboutSection() {
         { icon: GraduationCap, text: "Comunicação Social & Relações Públicas" },
         { icon: Award, text: "MBA em Gestão e Desenvolvimento de Pessoas" },
         { icon: Award, text: "Especialização em Marketing e Mídias Digitais" },
-        { icon: Award, text: "Especializando em Gestao Empresarial" },
+        { icon: Award, text: "Especialista em Gestao Empresarial" },
         { icon: Award, text: "Coaching Business" },
         { icon: Briefcase, text: "20+ anos de experiência corporativa" }
     ];
