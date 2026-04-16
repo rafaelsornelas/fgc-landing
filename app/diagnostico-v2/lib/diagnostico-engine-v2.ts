@@ -1,4 +1,4 @@
-import type { AnswersMap, DiagnosticoResult, Interpretation, ScaleLabel, SectorDefinition } from '../types';
+import type { AnswersMap, DiagnosticoResult, Interpretation, NotApplicableMap, ScaleLabel, SectorDefinition } from '../types';
 
 export const SECTORS: SectorDefinition[] = [
   {
@@ -444,17 +444,24 @@ export const SCALE_LABELS: ScaleLabel[] = [
   { value: 5, label: 'É Referência / Funciona Perfeitamente' },
 ];
 
-export function isSectorComplete(sectorIndex: number, answers: AnswersMap): boolean {
+export function isSectorComplete(sectorIndex: number, answers: AnswersMap, notApplicable?: NotApplicableMap): boolean {
   const sector = SECTORS[sectorIndex];
+  if (notApplicable?.[sector.id]) return true;
   const sectorAnswers = answers[sector.id] || [];
   return sector.questions.every((_, index) => sectorAnswers[index] !== undefined);
 }
 
-export function calculateDiagnosticoResults(answers: AnswersMap): DiagnosticoResult {
+export function calculateDiagnosticoResults(answers: AnswersMap, notApplicable?: NotApplicableMap): DiagnosticoResult {
   let totalWeightedScore = 0;
   let totalWeightedMax = 0;
 
   const sectorScores = SECTORS.map((sector) => {
+    const isNA = notApplicable?.[sector.id] ?? false;
+
+    if (isNA) {
+      return { id: sector.id, name: sector.name, score: 0, maxScore: 0, percentage: 0, weight: sector.weight, icon: sector.icon, isNotApplicable: true };
+    }
+
     const sectorAnswers = answers[sector.id] || [];
     const score = sectorAnswers.reduce((sum, value) => sum + (value || 0), 0);
     const maxScore = sector.questions.length * 5;
@@ -463,20 +470,13 @@ export function calculateDiagnosticoResults(answers: AnswersMap): DiagnosticoRes
     totalWeightedScore += score * sector.weight;
     totalWeightedMax += maxScore * sector.weight;
 
-    return {
-      id: sector.id,
-      name: sector.name,
-      score,
-      maxScore,
-      percentage,
-      weight: sector.weight,
-      icon: sector.icon,
-    };
+    return { id: sector.id, name: sector.name, score, maxScore, percentage, weight: sector.weight, icon: sector.icon, isNotApplicable: false };
   });
 
   const iee = totalWeightedMax > 0 ? Math.round((totalWeightedScore / totalWeightedMax) * 100) : 0;
-  const critical = [...sectorScores].sort((a, b) => a.percentage - b.percentage).slice(0, 3);
-  const strong = [...sectorScores].sort((a, b) => b.percentage - a.percentage).slice(0, 3);
+  const applicable = sectorScores.filter((s) => !s.isNotApplicable);
+  const critical = [...applicable].sort((a, b) => a.percentage - b.percentage).slice(0, 3);
+  const strong = [...applicable].sort((a, b) => b.percentage - a.percentage).slice(0, 3);
 
   return { iee, sectorScores, critical, strong };
 }

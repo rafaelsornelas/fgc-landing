@@ -33,7 +33,7 @@ function DiagnosticoV2Page() {
         {wizard.step === 0 && <StepContactInfo contact={wizard.contact} onChange={wizard.setContactField} maskWhatsApp={maskWhatsApp} />}
         {wizard.step === 1 && <StepCompanyDetails contact={wizard.contact} cnpjData={wizard.cnpjData} cnpjLoading={wizard.cnpjLoading} cnpjError={wizard.cnpjError} notes={wizard.notes} openNotes={wizard.openNotes} onChange={wizard.setContactField} onLookupCNPJ={wizard.lookupCNPJ} onToggleNotes={wizard.toggleNotes} onChangeNote={wizard.setNote} maskCNPJ={maskCNPJ} />}
         {sector && (
-          <StepSectorQuestions sector={sector} step={wizard.step} totalSectors={SECTORS.length} sectorAnswers={wizard.answers[sector.id] || []} onSetAnswer={wizard.setAnswer}>
+          <StepSectorQuestions sector={sector} step={wizard.step} totalSectors={SECTORS.length} sectorAnswers={wizard.answers[sector.id] || []} isNotApplicable={!!wizard.notApplicable[sector.id]} onSetAnswer={wizard.setAnswer} onToggleNotApplicable={wizard.toggleNotApplicable}>
             <div className="mt-6 border-t border-slate-700/50 pt-4">
               <StepNotes
                 noteKey={sector.id}

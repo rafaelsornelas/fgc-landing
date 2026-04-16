@@ -1,4 +1,4 @@
-import { AlertTriangle, Calendar, TrendingUp } from 'lucide-react';
+import { AlertTriangle, TrendingUp } from 'lucide-react';
 import type { ContactData, DiagnosticoResult, Interpretation } from '../types';
 import { IEEGauge } from './IEEGauge';
 import { RadarChart } from './RadarChart';
@@ -10,97 +10,127 @@ type ResultsViewProps = {
 };
 
 export function ResultsView({ results, interpretation, contact }: ResultsViewProps) {
+  const applicableScores = results.sectorScores.filter((s) => !s.isNotApplicable);
+
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <p className="text-slate-500 text-sm uppercase tracking-wider mb-2">Índice de Eficiência Empresarial</p>
+    <div className="space-y-6">
+      {/* IEE Score */}
+      <div
+        className="rounded-2xl p-6 text-center"
+        style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${interpretation.color}25` }}
+      >
+        <p className="text-xs uppercase tracking-widest mb-3" style={{ color: '#6b7280' }}>
+          Índice de Eficiência Empresarial
+        </p>
         <IEEGauge iee={results.iee} color={interpretation.color} />
-        <h2 className="text-xl font-bold mt-4" style={{ color: interpretation.color }}>
-          {(interpretation.level === 'vulneravel' || interpretation.level === 'risco') && <AlertTriangle className="w-5 h-5 inline mr-2" />}
-          {interpretation.level === 'saudavel' && <TrendingUp className="w-5 h-5 inline mr-2" />}
+        <h2 className="text-lg font-bold mt-4 flex items-center justify-center gap-2" style={{ color: interpretation.color }}>
+          {(interpretation.level === 'vulneravel' || interpretation.level === 'risco') && (
+            <AlertTriangle className="w-5 h-5" />
+          )}
+          {interpretation.level === 'saudavel' && <TrendingUp className="w-5 h-5" />}
           {interpretation.title}
         </h2>
-        <p className="text-slate-400 text-sm mt-3 max-w-lg mx-auto leading-relaxed">{interpretation.text}</p>
+        <p className="text-sm mt-3 max-w-lg mx-auto leading-relaxed" style={{ color: '#9ca3af' }}>
+          {interpretation.text}
+        </p>
       </div>
 
-      <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
-        <h3 className="text-lg font-semibold mb-4 text-center">Visão Geral por Setor</h3>
-        <RadarChart scores={results.sectorScores} />
+      {/* Radar */}
+      <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <h3 className="text-sm font-semibold mb-4 text-center" style={{ color: '#e2e8f0' }}>Visão Geral por Setor</h3>
+        <RadarChart scores={applicableScores} />
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-red-400 mb-3 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" /> Setores Mais Críticos
+      {/* Critical / Strong */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)' }}>
+          <h3 className="text-xs font-semibold uppercase tracking-wide mb-4 flex items-center gap-2" style={{ color: '#f87171' }}>
+            <AlertTriangle className="w-3.5 h-3.5" /> Setores Mais Críticos
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {results.critical.map((sector) => (
-              <div key={sector.id} className="flex items-center justify-between">
-                <span className="text-sm text-slate-300">{sector.icon} {sector.name}</span>
-                <span className="text-sm font-bold text-red-400">{sector.percentage}%</span>
+              <div key={sector.id} className="flex items-center justify-between gap-3">
+                <span className="text-sm" style={{ color: '#d1d5db' }}>{sector.icon} {sector.name}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-14 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${sector.percentage}%`, background: '#ef4444' }} />
+                  </div>
+                  <span className="text-xs font-bold tabular-nums w-8 text-right" style={{ color: '#f87171' }}>{sector.percentage}%</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-emerald-400 mb-3 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" /> Setores Mais Estruturados
+
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.15)' }}>
+          <h3 className="text-xs font-semibold uppercase tracking-wide mb-4 flex items-center gap-2" style={{ color: '#34d399' }}>
+            <TrendingUp className="w-3.5 h-3.5" /> Mais Estruturados
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {results.strong.map((sector) => (
-              <div key={sector.id} className="flex items-center justify-between">
-                <span className="text-sm text-slate-300">{sector.icon} {sector.name}</span>
-                <span className="text-sm font-bold text-emerald-400">{sector.percentage}%</span>
+              <div key={sector.id} className="flex items-center justify-between gap-3">
+                <span className="text-sm" style={{ color: '#d1d5db' }}>{sector.icon} {sector.name}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-14 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${sector.percentage}%`, background: '#10b981' }} />
+                  </div>
+                  <span className="text-xs font-bold tabular-nums w-8 text-right" style={{ color: '#34d399' }}>{sector.percentage}%</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-slate-300 mb-4">Detalhamento por Setor</h3>
+      {/* All sectors breakdown */}
+      <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <h3 className="text-xs font-semibold uppercase tracking-wide mb-5" style={{ color: '#6b7280' }}>Detalhamento por Setor</h3>
         <div className="space-y-3">
           {results.sectorScores.map((sector) => (
             <div key={sector.id} className="flex items-center gap-3">
-              <span className="text-sm w-40 truncate text-slate-400">{sector.icon} {sector.name}</span>
-              <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${sector.percentage}%`,
-                    background: sector.percentage >= 70 ? '#10b981' : sector.percentage >= 50 ? '#f59e0b' : '#ef4444',
-                  }}
-                />
+              <span className="text-sm w-36 truncate shrink-0" style={{ color: '#94a3b8' }}>{sector.icon} {sector.name}</span>
+              <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                {sector.isNotApplicable ? (
+                  <div className="h-full rounded-full" style={{ width: '100%', background: 'rgba(255,255,255,0.08)' }} />
+                ) : (
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${sector.percentage}%`,
+                      background: sector.percentage >= 70 ? '#10b981' : sector.percentage >= 50 ? '#f59e0b' : '#ef4444',
+                    }}
+                  />
+                )}
               </div>
-              <span className="text-sm font-bold w-10 text-right text-slate-300">{sector.percentage}%</span>
+              <span className="text-xs font-bold tabular-nums w-10 text-right shrink-0" style={{ color: sector.isNotApplicable ? '#374151' : '#9ca3af' }}>
+                {sector.isNotApplicable ? 'N/A' : `${sector.percentage}%`}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-6 text-center">
-        <p className="text-amber-300 text-sm leading-relaxed mb-1"><strong>⚡ Alerta Estratégico:</strong></p>
-        <p className="text-slate-400 text-sm leading-relaxed">
-          Empresas abaixo de 70% costumam crescer com esforço excessivo, dependência do gestor e baixa previsibilidade de resultados.
-        </p>
-      </div>
-
-      <div className="text-center space-y-4 pt-4">
-        <h3 className="text-xl font-bold">Próximo Passo Recomendado</h3>
-        <p className="text-slate-400 text-sm max-w-md mx-auto">
-          Agende um bate-papo estratégico com um consultor da FGC Expertise para entender como elevar sua eficiência de forma estruturada.
+      {/* CTA */}
+      <div
+        className="rounded-2xl p-6 text-center"
+        style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}
+      >
+        <h3 className="text-lg font-bold mb-2 text-white">Próximo Passo Recomendado</h3>
+        <p className="text-sm mb-5 max-w-md mx-auto leading-relaxed" style={{ color: '#9ca3af' }}>
+          Agende um bate-papo estratégico com a equipe da FGC Expertise e descubra como elevar sua eficiência de forma estruturada.
         </p>
         <a
           href={`https://wa.me/5531998760724?text=Olá! Fiz o diagnóstico empresarial pelo site e gostaria de agendar uma consultoria. Meu IEE foi de ${results.iee}%.`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold rounded-xl transition-all hover:scale-105"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#0a0e1a' }}
+          className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold transition-all hover:scale-105"
+          style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#0d1117', boxShadow: '0 4px 20px rgba(245,158,11,0.3)' }}
         >
-          <Calendar className="w-5 h-5" />
           Agendar Diagnóstico Estratégico
         </a>
-        <p className="text-slate-600 text-xs mt-2">Diagnóstico realizado por {contact.name} — {contact.empresa}</p>
+        <p className="text-xs mt-4" style={{ color: '#374151' }}>
+          Diagnóstico de {contact.name} — {contact.empresa}
+        </p>
       </div>
     </div>
   );

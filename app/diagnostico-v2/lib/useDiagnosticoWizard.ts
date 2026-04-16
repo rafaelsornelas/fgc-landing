@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { calculateDiagnosticoResults, getInterpretation, isSectorComplete, SECTORS } from './diagnostico-engine-v2';
-import type { AnswersMap, DiagnosticoFormData, NotesMap } from '../types';
+import type { AnswersMap, DiagnosticoFormData, NotApplicableMap, NotesMap } from '../types';
 
 const STORAGE_KEY = 'fgc_diagnostico_v2_rascunho';
 
@@ -50,6 +50,7 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
   const [cnpjLoading, setCnpjLoading] = useState(false);
   const [cnpjError, setCnpjError] = useState('');
   const [answers, setAnswers] = useState<AnswersMap>({});
+  const [notApplicable, setNotApplicable] = useState<NotApplicableMap>({});
   const [notes, setNotes] = useState<NotesMap>({});
   const [openNotes, setOpenNotes] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -75,22 +76,22 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
   useEffect(() => {
     if (submitted) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, contact, answers, notes, cnpjData, savedAt: new Date().toISOString() }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, contact, answers, notes, cnpjData, notApplicable, savedAt: new Date().toISOString() }));
     } catch {
       // Ignora indisponibilidade de localStorage.
     }
-  }, [step, contact, answers, notes, cnpjData, submitted]);
+  }, [step, contact, answers, notes, cnpjData, notApplicable, submitted]);
 
-  const results = useMemo(() => calculateDiagnosticoResults(answers), [answers]);
+  const results = useMemo(() => calculateDiagnosticoResults(answers, notApplicable), [answers, notApplicable]);
   const interpretation = useMemo(() => getInterpretation(results.iee), [results.iee]);
   const totalSteps = SECTORS.length + 3;
 
   const canGoNext = useMemo(() => {
     if (step === 0) return Boolean(contact.name && contact.email && contact.whatsapp && contact.empresa);
     if (step === 1) return Boolean(contact.cargo && contact.colaboradores && contact.faturamento);
-    if (step >= 2 && step <= SECTORS.length + 1) return isSectorComplete(step - 2, answers);
+    if (step >= 2 && step <= SECTORS.length + 1) return isSectorComplete(step - 2, answers, notApplicable);
     return true;
-  }, [answers, contact, step]);
+  }, [answers, contact, notApplicable, step]);
 
   const setAnswer = (sectorId: string, questionIndex: number, value: number) => {
     setAnswers((prev) => {
@@ -107,6 +108,9 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
     }
     setContact((prev) => ({ ...prev, [field]: value }));
   };
+
+  const toggleNotApplicable = (sectorId: string) =>
+    setNotApplicable((prev) => ({ ...prev, [sectorId]: !prev[sectorId] }));
 
   const setNote = (key: string, value: string) => setNotes((prev) => ({ ...prev, [key]: value }));
 
@@ -161,7 +165,8 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
           notas: notes,
           setores_criticos: results.critical.map((sector) => `${sector.name} (${sector.percentage}%)`).join(', '),
           setores_fortes: results.strong.map((sector) => `${sector.name} (${sector.percentage}%)`).join(', '),
-          detalhes: results.sectorScores.map((sector) => `${sector.name}: ${sector.percentage}%`).join(' | '),
+          detalhes: results.sectorScores.map((sector) => `${sector.name}: ${sector.isNotApplicable ? 'N/A' : `${sector.percentage}%`}`).join(' | '),
+          setores_inaplicaveis: Object.keys(notApplicable).filter((k) => notApplicable[k]).join(', '),
         }),
       });
       if (!response.ok) {
@@ -211,11 +216,13 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
         answers?: AnswersMap;
         notes?: NotesMap;
         cnpjData?: Record<string, unknown>;
+        notApplicable?: NotApplicableMap;
       };
       if (draft.contact) setContact(draft.contact);
       if (draft.answers) setAnswers(draft.answers);
       if (draft.notes) setNotes(draft.notes);
       if (draft.cnpjData) setCnpjData(draft.cnpjData);
+      if (draft.notApplicable) setNotApplicable(draft.notApplicable);
       if (typeof draft.step === 'number') setStep(draft.step);
     } catch {
       // Ignora indisponibilidade de localStorage e JSON inválido.
@@ -249,10 +256,12 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
     results,
     interpretation,
     canGoNext,
+    notApplicable,
     setAnswer,
     setContactField,
     setNote,
     toggleNotes,
+    toggleNotApplicable,
     lookupCNPJ,
     retrySubmit: submit,
     goNext,

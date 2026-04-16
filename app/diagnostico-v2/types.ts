@@ -26,6 +26,7 @@ export type SectorScore = {
   percentage: number;
   weight: number;
   icon: string;
+  isNotApplicable?: boolean;
 };
 
 export type DiagnosticoResult = {
@@ -61,3 +62,4 @@ export type DiagnosticoFormData = ContactData & CompanyData;
 
 export type AnswersMap = Record<string, number[]>;
 export type NotesMap = Record<string, string>;
+export type NotApplicableMap = Record<string, boolean>;

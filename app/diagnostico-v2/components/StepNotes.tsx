@@ -39,7 +39,8 @@ export function StepNotes({ noteKey, label, value, isOpen, placeholder, onToggle
             onChange={(event) => onChange(noteKey, event.target.value)}
             placeholder={placeholder}
             rows={4}
-            className="w-full mt-2 bg-slate-800/60 border border-slate-700 text-white text-sm rounded-xl px-4 py-3 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 resize-none"
+            className="w-full mt-2 text-white text-sm rounded-xl px-4 py-3 focus:outline-none resize-none"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: '0.875rem' }}
           />
         </motion.div>
       )}
