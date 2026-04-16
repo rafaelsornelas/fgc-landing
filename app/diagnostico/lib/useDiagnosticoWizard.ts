@@ -121,9 +121,11 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
     setCnpjLoading(true);
     setCnpjError('');
     try {
-      const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      if (response.status === 429) throw new Error('Muitas consultas ao serviço. Aguarde alguns segundos e tente novamente.');
-      if (!response.ok) throw new Error('CNPJ não encontrado. Verifique o número e tente novamente.');
+      const response = await fetch(`/api/cnpj/${digits}`);
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(err.error || 'CNPJ não encontrado. Verifique o número e tente novamente.');
+      }
       const data = await response.json() as { nome_fantasia?: string; razao_social?: string } & Record<string, unknown>;
       setCnpjData(data);
       setContact((prev) => ({ ...prev, empresa: prev.empresa || data.nome_fantasia || data.razao_social || '' }));
