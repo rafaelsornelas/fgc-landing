@@ -180,7 +180,12 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
     }
   };
 
+  const scrollToTop = () => {
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   const goNext = () => {
+    scrollToTop();
     if (step === SECTORS.length + 1) {
       setStep((currentStep) => currentStep + 1);
       void submit();
@@ -189,7 +194,10 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
     setStep((currentStep) => currentStep + 1);
   };
 
-  const goBack = () => setStep((currentStep) => Math.max(hasPrefilledData ? 1 : 0, currentStep - 1));
+  const goBack = () => {
+    scrollToTop();
+    setStep((currentStep) => Math.max(hasPrefilledData ? 1 : 0, currentStep - 1));
+  };
 
   const resumeDraft = () => {
     try {
