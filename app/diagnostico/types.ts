@@ -49,6 +49,7 @@ export type CompanyData = {
   cnpj: string;
   colaboradores: string;
   faturamento: string;
+  tempo_mercado: string;
 };
 
 export type DiagnosticoFormData = ContactData & CompanyData;

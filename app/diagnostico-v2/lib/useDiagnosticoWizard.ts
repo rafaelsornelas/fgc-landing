@@ -14,6 +14,7 @@ const EMPTY_FORM: DiagnosticoFormData = {
   empresa: '',
   colaboradores: '',
   faturamento: '',
+  tempo_mercado: '',
 };
 
 export function maskWhatsApp(value: string): string {
@@ -121,12 +122,13 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
     setCnpjError('');
     try {
       const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      if (!response.ok) throw new Error('CNPJ não encontrado');
+      if (response.status === 429) throw new Error('Muitas consultas ao serviço. Aguarde alguns segundos e tente novamente.');
+      if (!response.ok) throw new Error('CNPJ não encontrado. Verifique o número e tente novamente.');
       const data = await response.json() as { nome_fantasia?: string; razao_social?: string } & Record<string, unknown>;
       setCnpjData(data);
       setContact((prev) => ({ ...prev, empresa: prev.empresa || data.nome_fantasia || data.razao_social || '' }));
-    } catch {
-      setCnpjError('CNPJ não encontrado. Verifique e tente novamente.');
+    } catch (err) {
+      setCnpjError(err instanceof Error ? err.message : 'Erro ao consultar CNPJ. Tente novamente.');
       setCnpjData(null);
     } finally {
       setCnpjLoading(false);
@@ -149,6 +151,7 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
           empresa: contact.empresa,
           colaboradores: contact.colaboradores,
           faturamento: contact.faturamento,
+          tempo_mercado: contact.tempo_mercado,
           cnpj_data: cnpjData,
           iee: results.iee,
           nivel: interpretation.title,

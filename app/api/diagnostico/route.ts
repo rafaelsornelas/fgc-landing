@@ -54,6 +54,7 @@ export async function POST(request: Request) {
         const cnpj = typeof data.cnpj === 'string' ? sanitize(data.cnpj) : '';
         const colaboradores = typeof data.colaboradores === 'string' ? sanitize(data.colaboradores) : '';
         const faturamento = typeof data.faturamento === 'string' ? sanitize(data.faturamento) : '';
+        const tempo_mercado = typeof data.tempo_mercado === 'string' ? sanitize(data.tempo_mercado) : '';
         const cnpj_data = typeof data.cnpj_data === 'object' ? data.cnpj_data : null;
 
         // 1. Save to PocketBase
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
                 cnpj,
                 colaboradores,
                 faturamento,
+                tempo_mercado,
                 cnpj_data,
                 iee,
                 nivel,
@@ -104,6 +106,7 @@ export async function POST(request: Request) {
                     cnpj,
                     colaboradores,
                     faturamento,
+                    tempo_mercado,
                     iee,
                     nivel,
                     setores_criticos,

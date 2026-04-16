@@ -19,6 +19,7 @@ type StepCompanyDetailsProps = {
 
 const COLABORADORES_OPTIONS = ['1 a 10', '11 a 50', '51 a 100', '101 a 200', 'Mais de 200'];
 const FATURAMENTO_OPTIONS = ['Até R$ 10 mil', 'R$ 10 mil a R$ 50 mil', 'R$ 50 mil a R$ 200 mil', 'Acima de R$ 200 mil'];
+const TEMPO_MERCADO_OPTIONS = ['Menos de 1 ano', '1 a 3 anos', '3 a 5 anos', '5 a 10 anos', 'Mais de 10 anos'];
 
 export function StepCompanyDetails({
   contact,
@@ -140,6 +141,32 @@ export function StepCompanyDetails({
                   key={option}
                   type="button"
                   onClick={() => onChange('faturamento', option)}
+                  className="px-4 py-3 rounded-xl text-sm transition-all duration-200"
+                  style={{
+                    border: isSelected ? '2px solid #f59e0b' : '2px solid rgba(100,116,139,0.3)',
+                    background: isSelected ? 'rgba(245,158,11,0.15)' : 'transparent',
+                    color: isSelected ? '#fbbf24' : '#94a3b8',
+                    fontWeight: isSelected ? 700 : 400,
+                  }}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm text-slate-400 mb-1">🏢 Tempo de Mercado</label>
+          <p className="text-xs text-slate-600 mb-3">Independente do CNPJ atual — quanto tempo a empresa já atua no mercado?</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {TEMPO_MERCADO_OPTIONS.map((option) => {
+              const isSelected = contact.tempo_mercado === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => onChange('tempo_mercado', option)}
                   className="px-4 py-3 rounded-xl text-sm transition-all duration-200"
                   style={{
                     border: isSelected ? '2px solid #f59e0b' : '2px solid rgba(100,116,139,0.3)',
