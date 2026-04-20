@@ -64,21 +64,21 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = sessionStorage.getItem(STORAGE_KEY);
       if (!saved) return;
       const draft = JSON.parse(saved) as { step?: number; answers?: AnswersMap };
       if ((draft.step || 0) > 0 || Object.keys(draft.answers || {}).length > 0) setShowResume(true);
     } catch {
-      // Ignora indisponibilidade de localStorage e JSON inválido.
+      // Ignora indisponibilidade de sessionStorage e JSON inválido.
     }
   }, []);
 
   useEffect(() => {
     if (submitted) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, contact, answers, notes, cnpjData, notApplicable, savedAt: new Date().toISOString() }));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ step, contact, answers, notes, cnpjData, notApplicable, savedAt: new Date().toISOString() }));
     } catch {
-      // Ignora indisponibilidade de localStorage.
+      // Ignora indisponibilidade de sessionStorage.
     }
   }, [step, contact, answers, notes, cnpjData, notApplicable, submitted]);
 
@@ -175,9 +175,9 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
       }
       setSubmitted(true);
       try {
-        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY);
       } catch {
-        // Ignora indisponibilidade de localStorage.
+        // Ignora indisponibilidade de sessionStorage.
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro de conexão. Verifique sua internet e tente novamente.';
@@ -208,7 +208,7 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
 
   const resumeDraft = () => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = sessionStorage.getItem(STORAGE_KEY);
       if (!saved) return;
       const draft = JSON.parse(saved) as {
         step?: number;
@@ -225,16 +225,16 @@ export function useDiagnosticoWizard({ step, setStep }: UseDiagnosticoWizardPara
       if (draft.notApplicable) setNotApplicable(draft.notApplicable);
       if (typeof draft.step === 'number') setStep(draft.step);
     } catch {
-      // Ignora indisponibilidade de localStorage e JSON inválido.
+      // Ignora indisponibilidade de sessionStorage e JSON inválido.
     }
     setShowResume(false);
   };
 
   const discardDraft = () => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
     } catch {
-      // Ignora indisponibilidade de localStorage.
+      // Ignora indisponibilidade de sessionStorage.
     }
     setShowResume(false);
   };

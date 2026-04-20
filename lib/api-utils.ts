@@ -1,17 +1,46 @@
-export function createRateLimiter(max: number, windowMs: number) {
-    const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+interface RateLimitEntry {
+    count: number;
+    resetAt: number;
+    blockedUntil?: number;
+}
 
-    return function isRateLimited(ip: string): boolean {
+export function createRateLimiter(
+    max: number,
+    windowMs: number,
+    blockDurationMs = windowMs
+) {
+    const store = new Map<string, RateLimitEntry>();
+
+    setInterval(() => {
         const now = Date.now();
-        const entry = rateLimitMap.get(ip);
+        for (const [key, entry] of store) {
+            if (now > entry.resetAt && (!entry.blockedUntil || now > entry.blockedUntil)) {
+                store.delete(key);
+            }
+        }
+    }, windowMs * 2);
+
+    return function check(ip: string): { limited: boolean; retryAfter?: number } {
+        const now = Date.now();
+        const entry = store.get(ip);
+
+        if (entry?.blockedUntil && now < entry.blockedUntil) {
+            return { limited: true, retryAfter: Math.ceil((entry.blockedUntil - now) / 1000) };
+        }
 
         if (!entry || now > entry.resetAt) {
-            rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
-            return false;
+            store.set(ip, { count: 1, resetAt: now + windowMs });
+            return { limited: false };
         }
 
         entry.count++;
-        return entry.count > max;
+
+        if (entry.count > max) {
+            entry.blockedUntil = now + blockDurationMs;
+            return { limited: true, retryAfter: Math.ceil(blockDurationMs / 1000) };
+        }
+
+        return { limited: false };
     };
 }
 

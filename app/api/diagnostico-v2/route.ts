@@ -4,17 +4,18 @@ import { createRateLimiter, sanitize, validateEmail, validateWhatsApp } from '..
 
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW = 60 * 1000;
-const isRateLimited = createRateLimiter(RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
+const checkRateLimit = createRateLimiter(RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
 
 export async function POST(request: Request) {
     try {
         const forwarded = request.headers.get('x-forwarded-for');
         const ip = forwarded?.split(',')[0]?.trim() || 'unknown';
 
-        if (isRateLimited(ip)) {
+        const rl = checkRateLimit(ip);
+        if (rl.limited) {
             return NextResponse.json(
                 { error: 'Muitas requisições. Tente novamente em instantes.' },
-                { status: 429 }
+                { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } }
             );
         }
 

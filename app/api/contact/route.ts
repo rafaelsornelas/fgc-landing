@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
 import { createRateLimiter, sanitize, validateEmail, validateWhatsApp } from '../../../lib/api-utils';
 
-const RATE_LIMIT_MAX = 5; // max requests
-const RATE_LIMIT_WINDOW = 60 * 1000; // per 1 minute
-const isRateLimited = createRateLimiter(RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW = 60 * 1000;
+const checkRateLimit = createRateLimiter(RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
 
 export async function POST(request: Request) {
     try {
-        // Rate limiting by IP
         const forwarded = request.headers.get('x-forwarded-for');
         const ip = forwarded?.split(',')[0]?.trim() || 'unknown';
 
-        if (isRateLimited(ip)) {
+        const rl = checkRateLimit(ip);
+        if (rl.limited) {
             return NextResponse.json(
                 { error: 'Muitas requisições. Tente novamente em instantes.' },
-                { status: 429 }
+                { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } }
             );
         }
 
